@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library</title>
+    <link rel="stylesheet" href="/css/smstyle.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="navbar-logo">Series<span>Movies</span></div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <div class="page-title-block">
+        <p class="page-eyebrow">✦ Your collection</p>
+        <h1 class="page-title">Your <span>Library</span></h1>
+    </div>
+    <a href="/series-movies/new">
+        <button class="addbtn">+ Add Title</button>
+    </a>
+</div>
+
+<!-- SEARCH + FILTER -->
+<div class="controls">
+    <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" placeholder="Search titles, genres…" oninput="applyFilters()">
+    </div>
+    <button class="filter-btn active" onclick="setFilter('ALL', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('MOVIE', this)">🎬 Movies</button>
+    <button class="filter-btn" onclick="setFilter('SERIES', this)">📺 Series</button>
+</div>
+
+<!-- COUNT -->
+<div class="count-row">
+    <span class="count-badge" id="visibleCount">0</span>
+    <span class="count-label">titles in your library</span>
+</div>
+
+<!-- GRID -->
+<div class="grid" id="cardGrid">
+
+    <div class="card"
+         th:each="sm : ${items}"
+         th:attr="data-name=${sm.name},
+                data-genre=${sm.genre},
+                data-type=${sm.type != null ? sm.type : 'MOVIE'}">
+
+        <div class="card-accent"></div>
+
+        <!-- POSTER -->
+        <div class="card-poster">
+            <div class="card-poster-bg"></div>
+            <!-- If posterUrl exists, show image; else show emoji -->
+            <img th:if="${sm.posterUrl != null and !#strings.isEmpty(sm.posterUrl)}"
+                 th:src="${sm.posterUrl}"
+                 class="card-poster-img"
+                 alt="poster">
+            <div class="card-poster-icon"
+                 th:unless="${sm.posterUrl != null and !#strings.isEmpty(sm.posterUrl)}"
+                 th:text="${sm.type == 'SERIES'} ? '📺' : '🎬'">🎬</div>
+
+            <!-- Type tag -->
+            <div class="card-type-tag"
+                 th:text="${sm.type != null ? sm.type : 'MOVIE'}"
+                 th:classappend="${sm.type == 'SERIES'} ? ' tag-series' : ' tag-movie'">MOVIE</div>
+        </div>
+
+        <div class="card-body">
+            <div class="name" th:text="${sm.name}">Title</div>
+            <div class="card-meta">
+                <span class="genre" th:text="${sm.genre}">Genre</span>
+                <span class="year" th:text="${sm.releaseYear != null ? sm.releaseYear : '—'}">2024</span>
+            </div>
+            <div class="card-divider"></div>
+            <div class="actions">
+                <a th:href="@{'/series-movies/edit/' + ${sm.id}}">
+                    <button class="editbtn">✏ Edit</button>
+                </a>
+                <a th:href="@{'/series-movies/delete/' + ${sm.id}}">
+                    <button class="deletebtn">✕ Delete</button>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">🎞</div>
+        <div class="empty-title">Nothing found</div>
+        <p class="empty-sub">Try a different search or add a new title.</p>
+    </div>
+
+</div>
+
+<script>
+    let activeFilter = 'ALL';
+
+    function setFilter(type, btn) {
+        activeFilter = type;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const query = document.querySelector('.search-input').value.toLowerCase();
+        const cards = document.querySelectorAll('.card[data-name]');
+        let count = 0;
+
+        cards.forEach(card => {
+            const name    = (card.dataset.name  || '').toLowerCase();
+            const genre   = (card.dataset.genre || '').toLowerCase();
+            const type    = (card.dataset.type  || '').toUpperCase();
+
+            const matchSearch = name.includes(query) || genre.includes(query);
+            const matchFilter = activeFilter === 'ALL' || type === activeFilter;
+
+            const show = matchSearch && matchFilter;
+            card.style.display = show ? '' : 'none';
+            if (show) count++;
+        });
+
+        document.getElementById('emptyState').style.display = count === 0 ? 'block' : 'none';
+        document.getElementById('visibleCount').textContent = count;
+    }
+
+    window.addEventListener('DOMContentLoaded', applyFilters);
+</script>
+
+</body>
+</html>

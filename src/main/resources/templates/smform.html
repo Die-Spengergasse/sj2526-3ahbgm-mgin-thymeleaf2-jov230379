@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Title</title>
+    <link rel="stylesheet" th:href="@{/css/smstyle.css}">
+</head>
+<body>
+
+<div class="form-page">
+
+    <!-- LEFT PANEL: live preview -->
+    <div class="form-preview" id="previewPanel">
+        <div class="preview-bg" id="previewBg"></div>
+        <div class="preview-overlay"></div>
+        <div class="preview-content">
+            <div class="preview-type-badge" id="previewType">🎬 MOVIE</div>
+            <div class="preview-title" id="previewTitle">Your Title</div>
+            <div class="preview-genre" id="previewGenre">Genre</div>
+            <div class="preview-year" id="previewYear">—</div>
+        </div>
+        <div class="preview-hint">Live Preview</div>
+    </div>
+
+    <!-- RIGHT PANEL: form -->
+    <div class="form-panel">
+
+        <a href="/series-movies/manage" class="form-back">← Back to Library</a>
+
+        <div class="form-header">
+            <p class="form-eyebrow">New Entry</p>
+            <h2 class="form-title">Add Title</h2>
+        </div>
+
+        <form th:action="@{/series-movies/save}" th:object="${sm}" method="post" class="form-body">
+            <input type="hidden" th:field="*{id}">
+
+            <!-- TYPE TOGGLE -->
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <div class="type-toggle">
+                    <input type="radio" th:field="*{type}" id="typeMovie" value="MOVIE"
+                           onchange="updatePreviewType(this.value)">
+                    <label for="typeMovie" class="type-option">
+                        <span class="type-icon">🎬</span>
+                        <span>Movie</span>
+                    </label>
+                    <input type="radio" th:field="*{type}" id="typeSeries" value="SERIES"
+                           onchange="updatePreviewType(this.value)">
+                    <label for="typeSeries" class="type-option">
+                        <span class="type-icon">📺</span>
+                        <span>Series</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- TITLE -->
+            <div class="form-group">
+                <label class="form-label" for="name">Title</label>
+                <input class="form-input" id="name" type="text" th:field="*{name}"
+                       placeholder="e.g. Interstellar" autocomplete="off"
+                       oninput="document.getElementById('previewTitle').textContent = this.value || 'Your Title'">
+            </div>
+
+            <!-- GENRE -->
+            <div class="form-group">
+                <label class="form-label" for="genre">Genre</label>
+                <input class="form-input" id="genre" type="text" th:field="*{genre}"
+                       placeholder="e.g. Sci-Fi, Drama" autocomplete="off"
+                       oninput="document.getElementById('previewGenre').textContent = this.value || 'Genre'">
+            </div>
+
+            <!-- YEAR -->
+            <div class="form-group">
+                <label class="form-label" for="releaseYear">Release Year</label>
+                <input class="form-input" id="releaseYear" type="number" th:field="*{releaseYear}"
+                       placeholder="e.g. 2014" min="1888" max="2099"
+                       oninput="document.getElementById('previewYear').textContent = this.value || '—'">
+            </div>
+
+            <!-- POSTER URL -->
+            <div class="form-group">
+                <label class="form-label" for="posterUrl">Poster URL <span class="form-label-hint">(optional)</span></label>
+                <input class="form-input" id="posterUrl" type="url" th:field="*{posterUrl}"
+                       placeholder="https://..."
+                       oninput="updatePreviewPoster(this.value)">
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="form-actions">
+                <button type="submit" class="savebtn">Save to Library</button>
+                <a href="/series-movies/manage">
+                    <button type="button" class="cancelbtn">Cancel</button>
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<script>
+    function updatePreviewType(val) {
+        const badge = document.getElementById('previewType');
+        badge.textContent = val === 'SERIES' ? '📺 SERIES' : '🎬 MOVIE';
+        badge.style.borderColor = val === 'SERIES' ? '#f5c518' : 'rgba(229,9,20,.6)';
+        badge.style.color       = val === 'SERIES' ? '#f5c518' : '#e50914';
+    }
+    function updatePreviewPoster(url) {
+        const bg = document.getElementById('previewBg');
+        if (url && url.startsWith('http')) {
+            bg.style.backgroundImage    = `url('${url}')`;
+            bg.style.backgroundSize     = 'cover';
+            bg.style.backgroundPosition = 'center';
+        } else {
+            bg.style.backgroundImage = '';
+        }
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+        const nameVal   = document.getElementById('name').value;
+        const genreVal  = document.getElementById('genre').value;
+        const yearVal   = document.getElementById('releaseYear').value;
+        const posterVal = document.getElementById('posterUrl').value;
+        const typeVal   = document.querySelector('input[name="type"]:checked')?.value || 'MOVIE';
+        if (nameVal)                  document.getElementById('previewTitle').textContent = nameVal;
+        if (genreVal)                 document.getElementById('previewGenre').textContent = genreVal;
+        if (yearVal && yearVal !== '0') document.getElementById('previewYear').textContent = yearVal;
+        if (posterVal)                updatePreviewPoster(posterVal);
+        updatePreviewType(typeVal);
+    });
+</script>
+
+</body>
+</html>
